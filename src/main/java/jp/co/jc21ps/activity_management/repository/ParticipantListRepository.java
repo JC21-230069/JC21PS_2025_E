@@ -21,6 +21,20 @@ public class ParticipantListRepository {
          * TODO ➊ 初期表示情報を取得するSQLを完成させる。
          */
         String sql = """
+        SELECT
+                 activity_id
+                FROM
+                 mst_user user
+                LEFT JOIN
+                 trn_club_member member
+                ON
+                 user.user_id = member.user_id
+                AND
+                 member.leader_flg = 1
+                WHERE
+                 user.login_name = ?
+                 AND
+                  user.password =  ? ;
 
                 """;
 

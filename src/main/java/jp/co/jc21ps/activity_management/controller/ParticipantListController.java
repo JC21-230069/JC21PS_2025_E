@@ -47,6 +47,9 @@ public class ParticipantListController {
         /*
          * TODO ➊ セッションからuserId, clubIdを取得
          */
+        SessionDto sessionDto = new SessionDto();
+        sessionDto.getUserId();
+        sessionDto.getClubId();
 
         // セッションが切れた場合、エラー画面に遷移
         // if (userId.isEmpty()) {
@@ -57,9 +60,17 @@ public class ParticipantListController {
         /*
          * ➋TODO dtoに値をセット
          */
+        sessionDto.setUserId((String) session.getAttribute("userId"));
+        sessionDto.setClubId((String) session.getAttribute("clubId"));
 
         try {
             // ➌TODO participantListServiceのgetParticipantListDataメソッドを呼び出す。
+                ParticipantListDto paramDto = new ParticipantListDto();
+                paramDto.setActivityId(activityId);
+                paramDto.setUserId(sessionDto.getUserId());
+
+            ParticipantDto participantDto = participantListService.getParticipantListData(paramDto);
+
 
             // 返却用のリスト
             List<ParticipantListForm> responseListForm = new ArrayList<>();
