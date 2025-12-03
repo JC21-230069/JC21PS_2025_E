@@ -41,12 +41,13 @@ public class RegisterActivityController {
 
         ModelAndView mav = new ModelAndView();
 
-        // セッションからclubIdを取得
+        // セッションからuserId, clubIdを取得
         SessionDto sessionDto = commonService.getSessionDto(session);
+        String userId = sessionDto.getUserId();
         String leaderClubId = sessionDto.getClubId();
 
         // セッションが切れた場合、エラー画面に遷移
-        if (leaderClubId.isEmpty()) {
+        if (userId == null || userId.isEmpty()) {
             mav.setViewName("error");
             return mav;
         }
@@ -77,12 +78,19 @@ public class RegisterActivityController {
 
         ModelAndView mav = new ModelAndView();
 
-        /*
-         * TODO ➊ セッションからuserIdを取得する
-         */
+        // セッションからuserId, clubIdを取得
+        SessionDto sessionDto = commonService.getSessionDto(session);
+        String userId = sessionDto.getUserId();
+        String leaderClubId = sessionDto.getClubId();
 
         // バリデーションエラー
         if (bindingResult.hasErrors()) {
+            // エラー時も部署名を表示するために再取得
+            RegisterActivityDto activityDto = new RegisterActivityDto();
+            activityDto.setClubId(leaderClubId);
+            RegisterActivityDto registerActivityDto = registerActivityService.findActivity(activityDto);
+            paramForm.setClubName(registerActivityDto.getClubName());
+            
             mav.addObject("registerActivitySaveForm", paramForm);
             mav.addObject("leaderClubId", leaderClubId);
             mav.setViewName("registerActivity");
@@ -90,7 +98,7 @@ public class RegisterActivityController {
         }
 
         // セッションが切れた場合、エラー画面に遷移
-        if (leaderClubId.isEmpty()) {
+        if (leaderClubId == null || leaderClubId.isEmpty()) {
             mav.setViewName("error");
             return mav;
         }
@@ -102,6 +110,14 @@ public class RegisterActivityController {
             /*
              * TODO ➋ activitySaveDtoに、パラメータをsetする。
              */
+            activitySaveDto.setActivityName(paramForm.getActivityName());
+            activitySaveDto.setActivityDate(paramForm.getActivityDate());
+            activitySaveDto.setActivityPlace(paramForm.getActivityPlace());
+            activitySaveDto.setActivityStartTime(paramForm.getActivityStartTime());
+            activitySaveDto.setActivityEndTime(paramForm.getActivityEndTime());
+            activitySaveDto.setActivityDescription(paramForm.getActivityDescription());
+            activitySaveDto.setMaxParticipant(paramForm.getMaxParticipant());
+            activitySaveDto.setClubId(leaderClubId);
 
             // サービスからinsertメソッドを呼び出す
             String resultMessageKey = registerActivityService.insertActivity(activitySaveDto);
@@ -113,10 +129,8 @@ public class RegisterActivityController {
             // 活動登録に成功した場合、トップ画面に遷移
             if ("activityRegisterCompleteMessage".equals(resultMessageKey)) {
                 redirectAttributes.addFlashAttribute("activityRegisterCompleteMessage", resultMessage);
-                mav.addObject("leaderClubId", leaderClubId);
                 mav.setViewName("redirect:/top");
                 return mav;
-
             } else {
                 // 活動登録に失敗した場合、エラー画面に遷移
                 mav.setViewName("error");
